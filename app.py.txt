@@ -1,0 +1,44 @@
+from flask import Flask, render_template, jsonify, request, session, redirect, url_for
+app = Flask(__name__)
+eaders = {'User-Agent':'Mozilla/5.0 (Windows NT 10.0; Win64; x64)AppleWebKit/537.36 (KHTML, like Gecko) Chrome/73.0.3683.86 Safari/537.36'}
+
+from pymongo import MongoClient
+client = MongoClient('mongodb+srv://test:sparta@cluster0.cf8l2.mongodb.net/Cluster0?retryWrites=true&w=majority', 27017,username="test", password="sparta")
+db = client.dbsparta
+
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+@app.route('/givemethat', methods=["POST"])
+def give_health_type():
+    health = request.form['health_receive']
+    if health == 'uSanSo':
+        ae = list(db.human.find({'health': 'ae'}, {'health': True, 'name': True, 'met': True, '_id': False}))
+        return jsonify({'uSanSo': ae})
+    elif health == 'health':
+        pt = list(db.human.find({}, {'_id': False}))
+        return jsonify({'health': pt})
+
+@app.route('/givemeresult', methods=["POST"])
+def result():
+    health_receive = request.form['health_give']
+    name_receive = request.form['name_give']
+    if health_receive == 'uSanSo':
+        pt_info = db.human.find_one({'uSanSo': name_receive}, {'_id': False})
+    elif health_receive == 'health':
+        pt_info = db.human.find_one({'health': name_receive}, {'_id': False})
+    return jsonify({'gyms': pt_info})
+
+
+# if num_type_receive == 'uSanSo':
+#     exer_info = db.health.find_one({'exer_name': exer_name_receive}, {'_id': False})
+# elif num_type_receive == 'muSanSo':
+#     exer_info = db.health.find_one({'exer_name': exer_name_receive}, {'_id': False})
+# elif num_type_receive == 'health':
+#     exer_info = db.health.find_one({'exer_name': exer_name_receive}, {'_id': False})
+# return jsonify({'exer_info': exer_info})
+
+if __name__ == '__main__':
+    app.run('0.0.0.0', port=5000, debug=True)
+# 에디터 찾기/전체 선택 기능이랑 반복문 이용하시면 금방 하실 수 있으실거에요
